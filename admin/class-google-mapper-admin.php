@@ -41,6 +41,8 @@ class Google_Mapper_Admin {
 	 */
 	protected $plugin_screen_hook_suffix = null;
 
+	protected $script_mode = 'min';
+
 	/**
 	 * Initialize the plugin by loading admin scripts & styles and adding a
 	 * settings page and menu.
@@ -66,6 +68,10 @@ class Google_Mapper_Admin {
 		 * - Rename "Google_Mapper" to the name of your initial plugin class
 		 *
 		 */
+		if ( defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ) {
+			$this->script_mode = 'dev';
+		}
+
 		$plugin = Google_Mapper::get_instance();
 		$this->plugin_slug = $plugin->get_plugin_slug();
 
@@ -136,7 +142,7 @@ class Google_Mapper_Admin {
 
 		$screen = get_current_screen();
 		if ( $this->plugin_screen_hook_suffix == $screen->id ) {
-			wp_enqueue_style( $this->plugin_slug .'-admin-styles', plugins_url( 'assets/css/admin.css', __FILE__ ), array(), Google_Mapper::VERSION );
+			wp_enqueue_style( $this->plugin_slug .'-admin-styles', plugins_url( 'assets/css/styles.' . $this->script_mode . '.css', __FILE__ ), array(), Google_Mapper::VERSION );
 		}
 
 	}
@@ -160,7 +166,8 @@ class Google_Mapper_Admin {
 
 		$screen = get_current_screen();
 		if ( $this->plugin_screen_hook_suffix == $screen->id ) {
-			wp_enqueue_script( $this->plugin_slug . '-admin-script', plugins_url( 'assets/js/admin.js', __FILE__ ), array( 'jquery' ), Google_Mapper::VERSION );
+			wp_enqueue_script( $this->plugin_slug . '-google-maps', 'https://maps.googleapis.com/maps/api/js?v=3.exp&sensor=false', array(), '3' );
+			wp_enqueue_script( $this->plugin_slug . '-admin-script', plugins_url( 'assets/js/scripts.' . $this->script_mode . '.js', __FILE__ ), array( 'jquery', $this->plugin_slug . '-google-maps' ), Google_Mapper::VERSION );
 		}
 
 	}

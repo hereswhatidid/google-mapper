@@ -1,7 +1,6 @@
-/* globals jQuery:{},google:{}, alert:{}, console:{} */
-(function ( $ ) {
+/* globals ko:{}, google:{}, alert:{} */
+( function( $, ko ) {
 	'use strict';
-
 	var geocoder,
 		map;
 	function initialize() {
@@ -18,14 +17,14 @@
 		var address = document.getElementById('address').value;
 		geocoder.geocode( { 'address': address}, function(results, status) {
 			if (status === google.maps.GeocoderStatus.OK) {
-		      // map.setCenter(results[0].geometry.location);
-		      // var marker = new google.maps.Marker({
-		      //     map: map,
-		      //     position: results[0].geometry.location
-		      // });
-		      console.log( results[0].geometry );
-		      document.getElementById( 'latitude' ).value = results[0].geometry.location.d;
-		      document.getElementById( 'longitude' ).value = results[0].geometry.location.e;
+			// map.setCenter(results[0].geometry.location);
+			// var marker = new google.maps.Marker({
+			//     map: map,
+			//     position: results[0].geometry.location
+			// });
+				console.log( results[0].geometry );
+				document.getElementById( 'latitude' ).value = results[0].geometry.location.d;
+				document.getElementById( 'longitude' ).value = results[0].geometry.location.e;
 			} else {
 				alert('Geocode was not successful for the following reason: ' + status);
 			}
@@ -39,6 +38,7 @@
 			e.preventDefault();
 			codeAddress();
 		});
+		var tmp = ko;
+		tmp++;
 	});
-
-}(jQuery));
+})( jQuery, ko );
