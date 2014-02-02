@@ -92,8 +92,10 @@ class Google_Mapper_Admin {
 		 * Read more about actions and filters:
 		 * http://codex.wordpress.org/Plugin_API#Hooks.2C_Actions_and_Filters
 		 */
-		add_action( '@TODO', array( $this, 'action_method_name' ) );
-		add_filter( '@TODO', array( $this, 'filter_method_name' ) );
+		add_action( 'init', array( $this, 'initialize_post_types' ) );
+
+		add_action( 'wp_ajax_google_mapper_get_locations', array( $this, 'ajax_get_locations' ) );
+		// add_filter( '@TODO', array( $this, 'filter_method_name' ) );
 
 	}
 
@@ -168,6 +170,11 @@ class Google_Mapper_Admin {
 		if ( $this->plugin_screen_hook_suffix == $screen->id ) {
 			wp_enqueue_script( $this->plugin_slug . '-google-maps', 'https://maps.googleapis.com/maps/api/js?v=3.exp&sensor=false', array(), '3' );
 			wp_enqueue_script( $this->plugin_slug . '-admin-script', plugins_url( 'assets/js/scripts.' . $this->script_mode . '.js', __FILE__ ), array( 'jquery', $this->plugin_slug . '-google-maps' ), Google_Mapper::VERSION );
+			$mapper_localize = array(
+				'get_locations_nonce' => wp_create_nonce( $this->plugin_slug . '_get_locations' ),
+				'slug' => $this->plugin_slug
+			);
+			wp_localize_script( $this->plugin_slug . '-admin-script', 'GoogleMapper', $mapper_localize );
 		}
 
 	}
@@ -237,21 +244,92 @@ class Google_Mapper_Admin {
 	 *
 	 * @since    1.0.0
 	 */
-	public function action_method_name() {
-		// @TODO: Define your action hook callback here
+	public function initialize_post_types() {
+		$locations_labels = array(
+			'name'                => _x( 'Locations', 'Post Type General Name', $this->plugin_slug ),
+			'singular_name'       => _x( 'Location', 'Post Type Singular Name', $this->plugin_slug ),
+			'menu_name'           => __( 'Locations', $this->plugin_slug ),
+			'parent_item_colon'   => __( 'Parent Location:', $this->plugin_slug ),
+			'all_items'           => __( 'All Locations', $this->plugin_slug ),
+			'view_item'           => __( 'View Location', $this->plugin_slug ),
+			'add_new_item'        => __( 'Add New Location', $this->plugin_slug ),
+			'add_new'             => __( 'Add New', $this->plugin_slug ),
+			'edit_item'           => __( 'Edit Location', $this->plugin_slug ),
+			'update_item'         => __( 'Update Location', $this->plugin_slug ),
+			'search_items'        => __( 'Search Location', $this->plugin_slug ),
+			'not_found'           => __( 'Not found', $this->plugin_slug ),
+			'not_found_in_trash'  => __( 'Not found in Trash', $this->plugin_slug ),
+			);
+		$locations_args = array(
+			'label'               => __( 'google_locations', $this->plugin_slug ),
+			'description'         => __( 'Individual Google Map locations used by the Google Mapper plugin', $this->plugin_slug ),
+			'labels'              => $locations_labels,
+			'supports'            => array( 'title', ),
+			'hierarchical'        => false,
+			'public'              => false,
+			'show_ui'             => true,
+			'show_in_menu'        => true,
+			'show_in_nav_menus'   => true,
+			'show_in_admin_bar'   => true,
+			'menu_position'       => 5,
+			'menu_icon'           => '',
+			'can_export'          => true,
+			'has_archive'         => false,
+			'exclude_from_search' => true,
+			'publicly_queryable'  => true,
+			'rewrite'             => false,
+			'capability_type'     => 'page',
+			);
+		$maps_labels = array(
+			'name'                => _x( 'Maps', 'Post Type General Name', $this->plugin_slug ),
+			'singular_name'       => _x( 'Map', 'Post Type Singular Name', $this->plugin_slug ),
+			'menu_name'           => __( 'Maps', $this->plugin_slug ),
+			'parent_item_colon'   => __( 'Parent Map:', $this->plugin_slug ),
+			'all_items'           => __( 'All Maps', $this->plugin_slug ),
+			'view_item'           => __( 'View Map', $this->plugin_slug ),
+			'add_new_item'        => __( 'Add New Map', $this->plugin_slug ),
+			'add_new'             => __( 'Add New', $this->plugin_slug ),
+			'edit_item'           => __( 'Edit Map', $this->plugin_slug ),
+			'update_item'         => __( 'Update Map', $this->plugin_slug ),
+			'search_items'        => __( 'Search Map', $this->plugin_slug ),
+			'not_found'           => __( 'Not found', $this->plugin_slug ),
+			'not_found_in_trash'  => __( 'Not found in Trash', $this->plugin_slug ),
+			);
+		$maps_args = array(
+			'label'               => __( 'google_maps', $this->plugin_slug ),
+			'description'         => __( 'Individual Google Maps used by the Google Mapper plugin', $this->plugin_slug ),
+			'labels'              => $maps_labels,
+			'supports'            => array( 'title', ),
+			'hierarchical'        => false,
+			'public'              => false,
+			'show_ui'             => true,
+			'show_in_menu'        => true,
+			'show_in_nav_menus'   => true,
+			'show_in_admin_bar'   => true,
+			'menu_position'       => 5,
+			'menu_icon'           => '',
+			'can_export'          => true,
+			'has_archive'         => false,
+			'exclude_from_search' => true,
+			'publicly_queryable'  => true,
+			'rewrite'             => false,
+			'capability_type'     => 'page',
+			);
+		register_post_type( 'google_locations', $locations_args );
+		register_post_type( 'google_maps', $maps_args );
 	}
 
-	/**
-	 * NOTE:     Filters are points of execution in which WordPress modifies data
-	 *           before saving it or sending it to the browser.
-	 *
-	 *           Filters: http://codex.wordpress.org/Plugin_API#Filters
-	 *           Reference:  http://codex.wordpress.org/Plugin_API/Filter_Reference
-	 *
-	 * @since    1.0.0
-	 */
-	public function filter_method_name() {
-		// @TODO: Define your filter hook callback here
+	public function ajax_get_locations() {
+
+		check_ajax_referer( $this->plugin_slug . '_get_locations', 'security' );
+
+		$response = json_encode( array( 'result' => 'Awesome, it worked!' ) );
+
+		header('Content-Type: application/json');
+
+		echo $response;
+
+		exit;
 	}
 
 }

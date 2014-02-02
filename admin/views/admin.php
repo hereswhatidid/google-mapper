@@ -13,15 +13,36 @@
  */
 ?>
 
-<div class="wrap">
+<div class="wrap bootstrap-wrapper" id="googleMapperApp">
 
-	<h2><?php echo esc_html( get_admin_page_title() ); ?></h2>
-	<form action="#">
-		<input type="text" name="address" id="address"><br>
-		Lat: <input type="text" id="latitude"> x Long: <input type="text" id="longitude">
-		<button class="mapper-find"><?php _e( 'Check Address', $this->plugin_slug ); ?></button>
-
-	</form>
-	<!-- @TODO: Provide markup for your options page here. -->
-
+	<div class="container">
+		<div class="page-header">
+			<h1><?php echo esc_html( get_admin_page_title() ); ?> <small data-bind="text: appMode">Subtext for header</small></h1>
+		</div>
+		<div data-bind="page: { id: 'start', title: '<?php _e( 'View All', $this->plugin_slug ); ?>' }">
+			<table class="table table-bordered table-striped">
+				<thead>
+					<tr>
+						<th><?php _e( 'ID', $this->plugin_slug ); ?></th>
+						<th><?php _e( 'Title', $this->plugin_slug ); ?></th>
+						<th><?php _e( 'Address', $this->plugin_slug ); ?></th>
+						<th>&nbsp;</th>
+					</tr>
+				</thead>
+				<tbody data-bind="foreach: locations">
+					<tr>
+						<td data-bind="text: id"></td>
+						<td data-bind="title"></td>
+						<td data-bind="address"></td>
+						<td>
+							<div class="btn-group">
+								<a class="btn btn-success" data-bind="page-href: '/edit/'"><?php _e( 'Edit', $this->plugin_slug ); ?></a>
+								<a class="btn btn-error" data-bind="click: deleteLocation"><?php _e( 'Delete', $this->plugin_slug ); ?></a>
+							</div>
+						</td>
+					</tr>
+				</tbody>
+			</table>
+		</div>
+	</div>
 </div>
