@@ -138,12 +138,8 @@ class Google_Mapper_Admin {
 	 */
 	public function enqueue_admin_styles() {
 
-		if ( ! isset( $this->plugin_screen_hook_suffix ) ) {
-			return;
-		}
-
 		$screen = get_current_screen();
-		if ( $this->plugin_screen_hook_suffix == $screen->id ) {
+		if ( false !== strpos( $screen->id, 'google-mapper' ) ) {
 			wp_enqueue_style( $this->plugin_slug .'-admin-styles', plugins_url( 'assets/css/styles.' . $this->script_mode . '.css', __FILE__ ), array(), Google_Mapper::VERSION );
 		}
 
@@ -162,12 +158,9 @@ class Google_Mapper_Admin {
 	 */
 	public function enqueue_admin_scripts() {
 
-		if ( ! isset( $this->plugin_screen_hook_suffix ) ) {
-			return;
-		}
-
 		$screen = get_current_screen();
-		if ( $this->plugin_screen_hook_suffix == $screen->id ) {
+
+		if ( false !== strpos( $screen->id, 'google-mapper' ) ) {
 			wp_enqueue_script( $this->plugin_slug . '-google-maps', 'https://maps.googleapis.com/maps/api/js?v=3.exp&sensor=false', array(), '3' );
 			wp_enqueue_script( $this->plugin_slug . '-admin-script', plugins_url( 'assets/js/scripts.' . $this->script_mode . '.js', __FILE__ ), array( 'jquery', $this->plugin_slug . '-google-maps' ), Google_Mapper::VERSION );
 			$mapper_localize = array(
@@ -200,13 +193,48 @@ class Google_Mapper_Admin {
 		 * - Change 'manage_options' to the capability you see fit
 		 *   For reference: http://codex.wordpress.org/Roles_and_Capabilities
 		 */
-		$this->plugin_screen_hook_suffix = add_options_page(
-			__( 'Page Title', $this->plugin_slug ),
-			__( 'Menu Text', $this->plugin_slug ),
+		add_menu_page(
+			__( 'Google Mapper', $this->plugin_slug ),
+			__( 'Google Mapper', $this->plugin_slug ),
 			'manage_options',
 			$this->plugin_slug,
-			array( $this, 'display_plugin_admin_page' )
+			array( $this, 'locations_admin' ),
+			'dashicons-location-alt',
+			26
 		);
+		add_submenu_page(
+			$this->plugin_slug,
+			__( 'Locations', $this->plugin_slug ),
+			__( 'Locations', $this->plugin_slug ),
+			'manage_options',
+			$this->plugin_slug,
+			array( $this, 'locations_admin' )
+		);
+		add_submenu_page(
+			$this->plugin_slug,
+			__( 'Maps', $this->plugin_slug ),
+			__( 'Maps', $this->plugin_slug ),
+			'manage_options',
+			$this->plugin_slug . '-maps',
+			array( $this, 'maps_admin' )
+		);
+		add_submenu_page(
+			$this->plugin_slug,
+			__( 'Google Mapper Settings', $this->plugin_slug ),
+			__( 'Settings', $this->plugin_slug ),
+			'manage_options',
+			$this->plugin_slug . '-settings',
+			array( $this, 'maps_settings' )
+		);
+
+
+		// $this->plugin_screen_hook_suffix = add_options_page(
+		// 	__( 'Locations', $this->plugin_slug ),
+		// 	__( 'Menu Text', $this->plugin_slug ),
+		// 	'manage_options',
+		// 	$this->plugin_slug,
+		// 	array( $this, 'display_plugin_admin_page' )
+		// );
 
 	}
 
@@ -215,7 +243,23 @@ class Google_Mapper_Admin {
 	 *
 	 * @since    1.0.0
 	 */
-	public function display_plugin_admin_page() {
+	public function plugin_settings() {
+		include_once( 'views/admin.php' );
+	}
+	/**
+	 * Render the settings page for this plugin.
+	 *
+	 * @since    1.0.0
+	 */
+	public function locations_admin() {
+		include_once( 'views/admin.php' );
+	}
+	/**
+	 * Render the settings page for this plugin.
+	 *
+	 * @since    1.0.0
+	 */
+	public function maps_admin() {
 		include_once( 'views/admin.php' );
 	}
 
@@ -235,15 +279,6 @@ class Google_Mapper_Admin {
 
 	}
 
-	/**
-	 * NOTE:     Actions are points in the execution of a page or process
-	 *           lifecycle that WordPress fires.
-	 *
-	 *           Actions:    http://codex.wordpress.org/Plugin_API#Actions
-	 *           Reference:  http://codex.wordpress.org/Plugin_API/Action_Reference
-	 *
-	 * @since    1.0.0
-	 */
 	public function initialize_post_types() {
 		$locations_labels = array(
 			'name'                => _x( 'Locations', 'Post Type General Name', $this->plugin_slug ),
@@ -268,7 +303,7 @@ class Google_Mapper_Admin {
 			'hierarchical'        => false,
 			'public'              => false,
 			'show_ui'             => true,
-			'show_in_menu'        => true,
+			'show_in_menu'        => false,
 			'show_in_nav_menus'   => true,
 			'show_in_admin_bar'   => true,
 			'menu_position'       => 5,
@@ -303,7 +338,7 @@ class Google_Mapper_Admin {
 			'hierarchical'        => false,
 			'public'              => false,
 			'show_ui'             => true,
-			'show_in_menu'        => true,
+			'show_in_menu'        => false,
 			'show_in_nav_menus'   => true,
 			'show_in_admin_bar'   => true,
 			'menu_position'       => 5,
@@ -323,7 +358,14 @@ class Google_Mapper_Admin {
 
 		check_ajax_referer( $this->plugin_slug . '_get_locations', 'security' );
 
-		$response = json_encode( array( 'result' => 'Awesome, it worked!' ) );
+		$args = array(
+			'posts_per_page'   => 20,
+			'offset'           => 0,
+			);
+
+		$locations = get_posts( $locations_args );
+
+		$response = json_encode( array( 'locations' => $locations ) );
 
 		header('Content-Type: application/json');
 

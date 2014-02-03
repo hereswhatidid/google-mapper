@@ -5921,6 +5921,9 @@
     display: none !important;
   }
 }
+.bootstrap-wrapper .nav > li {
+  margin-bottom: 0;
+}
 .bootstrap-wrapper .tab-pane {
   float: left;
   width: 100%;

@@ -4732,7 +4732,10 @@ var locationsApp = locationsApp || {};
         ko.mapping.fromJS(data, {}, this);
     };
     Location = function(data) {
-        ko.mapping.fromJS(data, {}, this);
+        this.title = data.title || "";
+        this.street = data.street || "";
+        this.state = data.state || "";
+        this.zip = data.zip || "";
     };
     LocationsViewModel = function(data) {
         var self = this;
@@ -4772,7 +4775,7 @@ var locationsApp = locationsApp || {};
             security: GoogleMapper.get_locations_nonce,
             js_data_for_php: "Some Javascript data to pass to PHP AJAX handler"
         }, function(php_data) {
-            alert(php_data.result);
+            console.log(php_data);
         }, "json");
     }
     google.maps.event.addDomListener(window, "load", initialize);

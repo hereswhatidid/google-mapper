@@ -17,8 +17,13 @@
 
 	<div class="container">
 		<div class="page-header">
-			<h1><?php echo esc_html( get_admin_page_title() ); ?> <small data-bind="text: appMode">Subtext for header</small></h1>
+			<h1><?php echo esc_html( get_admin_page_title() ); ?> <small data-bind="text: appMode"></small></h1>
 		</div>
+		<div class="btn-group">
+			<a href="#" class="btn btn-primary"><?php _e( 'View All', $this->plugin_slug ); ?></a>
+			<a href="#" class="btn btn-success"><?php _e( 'Add New', $this->plugin_slug ); ?></a>
+		</div>
+		<div class="clearfix"></div>
 		<div data-bind="page: { id: 'start', title: '<?php _e( 'View All', $this->plugin_slug ); ?>' }">
 			<table class="table table-bordered table-striped">
 				<thead>
@@ -43,6 +48,9 @@
 					</tr>
 				</tbody>
 			</table>
+		</div>
+		<div data-bind="page: { id: 'edit', title: '<?php _e( 'Edit Location', $this->plugin_slug ); ?>' }">
+			
 		</div>
 	</div>
 </div>
